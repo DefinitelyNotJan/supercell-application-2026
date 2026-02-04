@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Jan Lönnqvist / Head of Creative Studio / Supercell</title>
+    <style>
+        @font-face {
+            font-family: 'Diatype Variable';
+            src: url('fonts/DiatypeVariable.woff2') format('woff2');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Lilita+One&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0b0e2a;
+            --bg2: #101440;
+            --surface: rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.08);
+            --white: #fff;
+            --gold: #ffd700;
+            --gold-dim: rgba(255,215,0,0.15);
+            --orange: #ff8c00;
+            --red: #e74c3c;
+            --green: #2ecc71;
+            --blue: #4fc3f7;
+            --purple: #a855f7;
+            --pink: #ff6b9d;
+            --dim: rgba(255,255,255,0.5);
+            --game: 'Lilita One', cursive;
+            --body: 'Diatype Variable', -apple-system, sans-serif;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--body);
+            background: var(--bg);
+            color: var(--white);
+            overflow-x: hidden;
+            cursor: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* ── STARS BG ── */
+        .stars {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ── GAME CURSOR ── */
+        .cursor {
+            position: fixed;
+            width: 32px;
+            height: 32px;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-4px, -4px);
+            transition: transform 0.1s;
+        }
+        .cursor svg { width: 100%; height: 100%; filter: drop-shadow(0 0 4px rgba(255,215,0,0.5)); }
+        .cursor.click { transform: translate(-4px, -4px) scale(0.8); }
+
+        /* ── HUD ── */
+        .hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: linear-gradient(180deg, rgba(11,14,42,0.95), transparent);
+            backdrop-filter: blur(8px);
+        }
+        .hud-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .hud-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            background: var(--bg2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--game);
+            font-size: 16px;
+            color: var(--gold);
+        }
+        .hud-info { display: flex; flex-direction: column; gap: 2px; }
+        .hud-name {
+            font-family: var(--game);
+            font-size: 14px;
+            color: var(--gold);
+        }
+        .hud-xp-bar {
+            width: 120px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .hud-xp-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--green), var(--blue));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .hud-level {
+            font-size: 9px;
+            color: var(--dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .hud-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .hud-coin {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--game);
+            font-size: 14px;
+            color: var(--gold);
+        }
+        .hud-coin .coin-icon {
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, var(--gold), var(--orange));
+            border-radius: 50%;
+            border: 2px solid #b8860b;
+        }
+        .hud-scroll-pct {
+            font-family: var(--game);
+            font-size: 12px;
+            color: var(--blue);
+        }
+
+        /* ── LOADING SCREEN ── */
+        .loader {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s, visibility 0.6s;
+        }
+        .loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loader-title {
+            font-family: var(--game);
+            font-size: 36px;
+            color: var(--gold);
+            text-shadow: 0 2px 8px rgba(255,215,0,0.3);
+            margin-bottom: 32px;
+        }
+        .loader-bar-wrap {
+            width: 280px;
+            height: 16px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 8px;
+            border: 2px solid rgba(255,215,0,0.2);
+            overflow: hidden;
+            position: relative;
+        }
+        .loader-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--orange), var(--gold));
+            border-radius: 6px;
+            animation: loadFill 2s ease-in-out forwards;
+            position: relative;
+        }
+        .loader-bar-fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+        }
+        @keyframes loadFill { to { width: 100%; } }
+        .loader-pct {
+            font-family: var(--game);
+            font-size: 14px;
+            color: var(--dim);
+            margin-top: 12px;
+        }
+        .loader-tip {
+            font-size: 12px;
+            font-weight: 300;
+            color: rgba(255,255,255,0.25);
+            margin-top: 24px;
+            letter-spacing: 1px;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            padding: 80px;
+            overflow: hidden;
+        }
+        .hero-bg-img {
+            position: absolute;
+            right: -60px;
+            bottom: -40px;
+            width: 55%;
+            max-width: 700px;
+            opacity: 0.18;
+            pointer-events: none;
+            filter: blur(1px);
+            z-index: 0;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 700px;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--game);
+            font-size: 13px;
+            color: var(--gold);
+            background: var(--gold-dim);
+            border: 1px solid rgba(255,215,0,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: popIn 0.5s 2.2s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+        .hero-badge .star { color: var(--gold); }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .hero-title {
+            font-family: var(--game);
+            font-size: clamp(48px, 8vw, 96px);
+            line-height: 1;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: slideUp 0.7s 2.4s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+        .hero-title .gold { color: var(--gold); text-shadow: 0 0 30px rgba(255,215,0,0.3); }
+        .hero-title .blue { color: var(--blue); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hero-sub {
+            font-size: 16px;
+            font-weight: 300;
+            color: var(--dim);
+            line-height: 1.8;
+            max-width: 540px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: slideUp 0.7s 2.7s ease forwards;
+        }
+        .hero-hp {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            opacity: 0;
+            animation: slideUp 0.5s 3s ease forwards;
+        }
+        .hp-label {
+            font-family: var(--game);
+            font-size: 12px;
+            color: var(--red);
+            width: 28px;
+        }
+        .hp-bar {
+            flex: 1;
+            max-width: 300px;
+            height: 14px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 7px;
+            overflow: hidden;
+            border: 1px solid rgba(231,76,60,0.2);
+        }
+        .hp-fill {
+            height: 100%;
+            width: 92%;
+            background: linear-gradient(90deg, var(--red), #ff6b6b);
+            border-radius: 6px;
+            position: relative;
+        }
+        .hp-fill::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            right: 4px;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+        }
+        .hp-text {
+            font-family: var(--game);
+            font-size: 11px;
+            color: var(--dim);
+        }
+        .hero-mp {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            animation: slideUp 0.5s 3.1s ease forwards;
+        }
+        .mp-label {
+            font-family: var(--game);
+            font-size: 12px;
+            color: var(--blue);
+            width: 28px;
+        }
+        .mp-bar {
+            flex: 1;
+            max-width: 300px;
+            height: 14px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 7px;
+            overflow: hidden;
+            border: 1px solid rgba(79,195,247,0.2);
+        }
+        .mp-fill {
+            height: 100%;
+            width: 78%;
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+            border-radius: 6px;
+            position: relative;
+        }
+        .mp-fill::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            right: 4px;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+        }
+        .mp-text {
+            font-family: var(--game);
+            font-size: 11px;
+            color: var(--dim);
+        }
+
+        /* ── STATS SECTION ── */
+        .stats-section {
+            padding: 100px 80px;
+            position: relative;
+            z-index: 1;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+        .stat-card:hover {
+            border-color: rgba(255,215,0,0.3);
+            transform: translateY(-4px);
+        }
+        .stat-card .stat-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .stat-card .stat-val {
+            font-family: var(--game);
+            font-size: 32px;
+            color: var(--gold);
+            margin-bottom: 4px;
+        }
+        .stat-card .stat-name {
+            font-size: 11px;
+            font-weight: 300;
+            color: var(--dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .stat-card .rarity {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-family: var(--game);
+            font-size: 8px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .rarity.legendary { background: rgba(255,215,0,0.15); color: var(--gold); }
+        .rarity.epic { background: rgba(168,85,247,0.15); color: var(--purple); }
+        .rarity.rare { background: rgba(79,195,247,0.15); color: var(--blue); }
+
+        /* ── QUEST LOG (EXPERIENCE) ── */
+        .quest-section {
+            padding: 120px 80px;
+            position: relative;
+            z-index: 1;
+        }
+        .quest-header {
+            max-width: 1200px;
+            margin: 0 auto 60px;
+        }
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--game);
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .badge-gold { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(255,215,0,0.2); }
+        .badge-blue { background: rgba(79,195,247,0.1); color: var(--blue); border: 1px solid rgba(79,195,247,0.2); }
+        .badge-purple { background: rgba(168,85,247,0.1); color: var(--purple); border: 1px solid rgba(168,85,247,0.2); }
+        .badge-green { background: rgba(46,204,113,0.1); color: var(--green); border: 1px solid rgba(46,204,113,0.2); }
+        .badge-red { background: rgba(231,76,60,0.1); color: var(--red); border: 1px solid rgba(231,76,60,0.2); }
+        .section-title {
+            font-family: var(--game);
+            font-size: clamp(32px, 5vw, 56px);
+            line-height: 1.1;
+        }
+        .quest-list {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .quest-item {
+            display: grid;
+            grid-template-columns: 60px 1fr auto;
+            gap: 20px;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: border-color 0.3s, transform 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .quest-item:hover {
+            border-color: rgba(255,215,0,0.2);
+            transform: translateX(4px);
+        }
+        .quest-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--gold);
+            border-radius: 0 2px 2px 0;
+        }
+        .quest-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .qi-gold { background: var(--gold-dim); }
+        .qi-blue { background: rgba(79,195,247,0.1); }
+        .qi-green { background: rgba(46,204,113,0.1); }
+        .qi-purple { background: rgba(168,85,247,0.1); }
+        .qi-orange { background: rgba(255,140,0,0.1); }
+        .qi-red { background: rgba(231,76,60,0.1); }
+        .quest-info h3 {
+            font-family: var(--game);
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+        .quest-info .quest-company {
+            font-size: 13px;
+            color: var(--dim);
+            margin-bottom: 8px;
+        }
+        .quest-info .quest-desc {
+            font-size: 13px;
+            font-weight: 300;
+            color: rgba(255,255,255,0.35);
+            line-height: 1.6;
+        }
+        .quest-reward {
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .quest-year {
+            font-family: var(--game);
+            font-size: 12px;
+            color: var(--gold);
+            margin-bottom: 4px;
+        }
+        .quest-xp {
+            font-family: var(--game);
+            font-size: 14px;
+            color: var(--green);
+        }
+        .quest-status {
+            font-size: 10px;
+            font-weight: 300;
+            color: var(--dim);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ── ACHIEVEMENTS (SKILLS) ── */
+        .achieve-section {
+            padding: 120px 80px;
+            position: relative;
+            z-index: 1;
+        }
+        .achieve-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .achieve-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px 16px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .achieve-item:hover {
+            border-color: rgba(255,215,0,0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(255,215,0,0.08);
+        }
+        .achieve-item .a-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .achieve-item .a-name {
+            font-family: var(--game);
+            font-size: 12px;
+            color: var(--white);
+        }
+        .achieve-item .a-unlocked {
+            font-size: 9px;
+            color: var(--green);
+            margin-top: 6px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* ── GAME CHARACTERS SECTION (WHY SUPERCELL) ── */
+        .why-section {
+            padding: 120px 80px;
+            position: relative;
+            z-index: 1;
+        }
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .why-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px 28px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s, transform 0.3s;
+        }
+        .why-card:hover {
+            border-color: rgba(255,215,0,0.25);
+            transform: translateY(-4px);
+        }
+        .why-card .card-rarity {
+            font-family: var(--game);
+            font-size: 9px;
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        .why-card h3 {
+            font-family: var(--game);
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+        .why-card p {
+            font-size: 13px;
+            font-weight: 300;
+            line-height: 1.8;
+            color: var(--dim);
+        }
+        .why-card .card-xp {
+            font-family: var(--game);
+            font-size: 12px;
+            color: var(--green);
+            margin-top: 16px;
+            display: inline-block;
+        }
+        .why-card .card-bg-num {
+            position: absolute;
+            bottom: 12px;
+            right: 16px;
+            font-family: var(--game);
+            font-size: 72px;
+            color: rgba(255,255,255,0.02);
+            line-height: 1;
+        }
+
+        /* ── CHARACTER CARDS (GAME IMAGES) ── */
+        .chars-section {
+            padding: 80px 80px 120px;
+            position: relative;
+            z-index: 1;
+        }
+        .chars-banner {
+            max-width: 1200px;
+            margin: 0 auto;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg2), rgba(255,215,0,0.05));
+        }
+        .chars-banner-text {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        .chars-banner-text h2 {
+            font-family: var(--game);
+            font-size: clamp(28px, 4vw, 48px);
+            margin-bottom: 16px;
+        }
+        .chars-banner-text h2 .gold { color: var(--gold); }
+        .chars-banner-text p {
+            font-size: 14px;
+            font-weight: 300;
+            color: var(--dim);
+            max-width: 500px;
+            line-height: 1.7;
+        }
+        .chars-banner .game-imgs {
+            position: absolute;
+            display: flex;
+            gap: 16px;
+            opacity: 0.08;
+        }
+        .chars-banner .game-imgs img {
+            height: 250px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        /* ── BOSS BATTLE CTA ── */
+        .cta-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            padding: 80px;
+        }
+        .cta-boss-label {
+            font-family: var(--game);
+            font-size: 12px;
+            color: var(--red);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .cta-title {
+            font-family: var(--game);
+            font-size: clamp(48px, 9vw, 100px);
+            line-height: 0.95;
+            margin-bottom: 24px;
+            color: var(--gold);
+            text-shadow: 0 0 40px rgba(255,215,0,0.2);
+        }
+        .cta-sub {
+            font-size: 16px;
+            font-weight: 300;
+            color: var(--dim);
+            margin-bottom: 48px;
+            max-width: 480px;
+            line-height: 1.8;
+        }
+        .cta-btn {
+            font-family: var(--game);
+            font-size: 18px;
+            padding: 18px 56px;
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            color: var(--bg);
+            text-decoration: none;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 20px rgba(255,215,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 40px rgba(255,215,0,0.35);
+        }
+        .cta-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transform: rotate(45deg);
+            animation: btnShine 3s ease-in-out infinite;
+        }
+        @keyframes btnShine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            30%, 100% { transform: translateX(100%) rotate(45deg); }
+        }
+        .cta-contact {
+            margin-top: 48px;
+            display: flex;
+            gap: 32px;
+        }
+        .cta-contact a {
+            font-size: 13px;
+            font-weight: 300;
+            color: var(--dim);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .cta-contact a:hover { color: var(--gold); }
+
+        /* ── FOOTER ── */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 24px 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 300;
+            color: rgba(255,255,255,0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── SCROLL REVEAL ── */
+        .sr {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+        }
+        .sr.vis {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── FLOATING PARTICLES ── */
+        .float-particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .hero { padding: 100px 24px 60px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid .stat-card:last-child { grid-column: span 2; }
+            .quest-section, .achieve-section, .why-section, .chars-section { padding: 80px 24px; }
+            .quest-item { grid-template-columns: 1fr; gap: 12px; }
+            .quest-icon { display: none; }
+            .quest-reward { text-align: left; }
+            .why-grid { grid-template-columns: 1fr; }
+            .achieve-grid { grid-template-columns: repeat(3, 1fr); }
+            .cta-section { padding: 80px 24px; }
+            .cta-contact { flex-direction: column; gap: 12px; }
+            .footer { padding: 20px 24px; flex-direction: column; gap: 8px; }
+            .cursor { display: none; }
+            body { cursor: auto; }
+            .hud { padding: 10px 16px; }
+            .hud-right { display: none; }
+            .hero-bg-img { width: 80%; right: -30px; bottom: -20px; opacity: 0.1; }
+            .chars-banner { height: 220px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── LOADER ── -->
+<div class="loader" id="loader">
+    <div class="loader-title">LOADING...</div>
+    <div class="loader-bar-wrap">
+        <div class="loader-bar-fill"></div>
+    </div>
+    <div class="loader-pct" id="loaderPct">0%</div>
+    <div class="loader-tip">Tip: Always bring a healer to the boss fight.</div>
+</div>
+
+<!-- ── STARS CANVAS ── -->
+<canvas class="stars" id="starsCanvas"></canvas>
+
+<!-- ── CURSOR ── -->
+<div class="cursor" id="cursor">
+    <svg viewBox="0 0 32 32" fill="none">
+        <path d="M4 4L14 28L18 16L28 12L4 4Z" fill="#ffd700" stroke="#b8860b" stroke-width="1.5"/>
+    </svg>
+</div>
+
+<!-- ── HUD ── -->
+<div class="hud" id="hud">
+    <div class="hud-left">
+        <div class="hud-avatar">J</div>
+        <div class="hud-info">
+            <div class="hud-name">Jan Lönnqvist</div>
+            <div class="hud-xp-bar"><div class="hud-xp-fill" id="hudXpFill"></div></div>
+            <div class="hud-level">Level 12 Creative Director</div>
+        </div>
+    </div>
+    <div class="hud-right">
+        <div class="hud-coin"><div class="coin-icon"></div><span id="coinCount">0</span></div>
+        <div class="hud-scroll-pct" id="hudScroll">0%</div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- HERO -->
+<!-- ═══════════════════════════════════════ -->
+<section class="hero" id="heroSection">
+    <img class="hero-bg-img" src="https://supercell.com/images/scid/supercell-id-bg-desktop.6b866dc3.webp" alt="" loading="lazy">
+    <div class="hero-content">
+        <div class="hero-badge">
+            <span class="star">&#9733;</span> NEW QUEST AVAILABLE
+        </div>
+        <h1 class="hero-title">
+            <span class="gold">Head of</span><br>
+            <span class="blue">Creative Studio</span>
+        </h1>
+        <p class="hero-sub">12+ years building creative systems for global brands. Ready to lead Supercell's in-house marketing creative team across user acquisition, animation, visual design, and art direction.</p>
+        <div class="hero-hp">
+            <span class="hp-label">HP</span>
+            <div class="hp-bar"><div class="hp-fill"></div></div>
+            <span class="hp-text">920 / 1000</span>
+        </div>
+        <div class="hero-mp">
+            <span class="mp-label">MP</span>
+            <div class="mp-bar"><div class="mp-fill"></div></div>
+            <span class="mp-text">780 / 1000</span>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- PLAYER STATS -->
+<!-- ═══════════════════════════════════════ -->
+<section class="stats-section" id="statsSection">
+    <div class="stats-grid">
+        <div class="stat-card sr">
+            <span class="rarity legendary">Legendary</span>
+            <span class="stat-icon">&#9876;</span>
+            <div class="stat-val" data-count="12">0</div>
+            <div class="stat-name">Years XP</div>
+        </div>
+        <div class="stat-card sr">
+            <span class="rarity epic">Epic</span>
+            <span class="stat-icon">&#127758;</span>
+            <div class="stat-val" data-count="40">0</div>
+            <div class="stat-name">Countries</div>
+        </div>
+        <div class="stat-card sr">
+            <span class="rarity rare">Rare</span>
+            <span class="stat-icon">&#128081;</span>
+            <div class="stat-val" data-count="6">0</div>
+            <div class="stat-name">Major Brands</div>
+        </div>
+        <div class="stat-card sr">
+            <span class="rarity legendary">Legendary</span>
+            <span class="stat-icon">&#9881;</span>
+            <div class="stat-val" data-count="100">0</div>
+            <div class="stat-name">Campaigns</div>
+        </div>
+        <div class="stat-card sr">
+            <span class="rarity epic">Epic</span>
+            <span class="stat-icon">&#127942;</span>
+            <div class="stat-val" data-count="3">0</div>
+            <div class="stat-name">Languages</div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- QUEST LOG (EXPERIENCE) -->
+<!-- ═══════════════════════════════════════ -->
+<section class="quest-section" id="questSection">
+    <div class="quest-header">
+        <div class="section-badge badge-gold sr">&#9733; QUEST LOG</div>
+        <div class="section-title sr">Completed <span style="color:var(--gold)">Quests</span></div>
+    </div>
+    <div class="quest-list">
+        <div class="quest-item sr">
+            <div class="quest-icon qi-gold">&#9876;</div>
+            <div class="quest-info">
+                <h3>The Continental Campaign</h3>
+                <div class="quest-company">DHL / Agency / Multi-Market</div>
+                <div class="quest-desc">Data-driven campaign design with self-led localisation across 12+ European markets. Full creative pipeline ownership, one designer handling hundreds of assets for one of the world's biggest logistics brands.</div>
+            </div>
+            <div class="quest-reward">
+                <div class="quest-year">2024</div>
+                <div class="quest-xp">+5000 XP</div>
+                <div class="quest-status">&#9733; Completed</div>
+            </div>
+        </div>
+        <div class="quest-item sr">
+            <div class="quest-icon qi-purple">&#128142;</div>
+            <div class="quest-info">
+                <h3>The Hammam Record</h3>
+                <div class="quest-company">Rituals Cosmetics / Amsterdam</div>
+                <div class="quest-desc">DTP, graphic design, seasonal campaigns across digital, packaging, and retail. Designed the Hammam campaign which achieved the highest sales in the product's history. Multi-channel delivery across 40+ markets.</div>
+            </div>
+            <div class="quest-reward">
+                <div class="quest-year">2022 / 2024</div>
+                <div class="quest-xp">+8000 XP</div>
+                <div class="quest-status">&#9733; Completed</div>
+            </div>
+        </div>
+        <div class="quest-item sr">
+            <div class="quest-icon qi-green">&#127860;</div>
+            <div class="quest-info">
+                <h3>The Production Pipeline</h3>
+                <div class="quest-company">HelloFresh / Amsterdam</div>
+                <div class="quest-desc">High-volume production, DTP, graphic design, team leading, project management. Managed production pipelines at scale while maintaining quality across all deliverables.</div>
+            </div>
+            <div class="quest-reward">
+                <div class="quest-year">2022</div>
+                <div class="quest-xp">+4000 XP</div>
+                <div class="quest-status">&#9733; Completed</div>
+            </div>
+        </div>
+        <div class="quest-item sr">
+            <div class="quest-icon qi-blue">&#128717;</div>
+            <div class="quest-info">
+                <h3>The Retail Fortress</h3>
+                <div class="quest-company">IKEA Group</div>
+                <div class="quest-desc">DTP and graphic design for retail campaigns. Multi-format production across in-store, digital, and print channels for the world's largest furniture retailer.</div>
+            </div>
+            <div class="quest-reward">
+                <div class="quest-year">2019 / 2020</div>
+                <div class="quest-xp">+3500 XP</div>
+                <div class="quest-status">&#9733; Completed</div>
+            </div>
+        </div>
+        <div class="quest-item sr">
+            <div class="quest-icon qi-orange">&#127912;</div>
+            <div class="quest-info">
+                <h3>The Art Director's Guild</h3>
+                <div class="quest-company">Valve, Planex, Pixmill, Cocomms, Lönnberg, Multiprint</div>
+                <div class="quest-desc">Art direction, DTP, and graphic design across Finland's top agencies and print houses. Deep roots in print production, prepress, and hands-on craft from 2013 to 2019.</div>
+            </div>
+            <div class="quest-reward">
+                <div class="quest-year">2013 / 2019</div>
+                <div class="quest-xp">+6000 XP</div>
+                <div class="quest-status">&#9733; Completed</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- ACHIEVEMENTS (SKILLS) -->
+<!-- ═══════════════════════════════════════ -->
+<section class="achieve-section" id="achieveSection">
+    <div class="quest-header">
+        <div class="section-badge badge-purple sr">&#128081; ACHIEVEMENTS</div>
+        <div class="section-title sr">Skills <span style="color:var(--purple)">Unlocked</span></div>
+    </div>
+    <div class="achieve-grid">
+        <div class="achieve-item sr"><span class="a-icon">&#127912;</span><span class="a-name">Figma</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#128444;</span><span class="a-name">Photoshop</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#9999;</span><span class="a-name">Illustrator</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#128214;</span><span class="a-name">InDesign</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#127916;</span><span class="a-name">After Effects</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#127909;</span><span class="a-name">Premiere</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#129302;</span><span class="a-name">Midjourney</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#128172;</span><span class="a-name">ChatGPT</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#127775;</span><span class="a-name">Motion</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#128736;</span><span class="a-name">Brand Systems</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#128221;</span><span class="a-name">Typography</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#127760;</span><span class="a-name">Localisation</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#128187;</span><span class="a-name">HTML / CSS</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#127918;</span><span class="a-name">Gaming UX</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#128200;</span><span class="a-name">Art Direction</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+        <div class="achieve-item sr"><span class="a-icon">&#128230;</span><span class="a-name">Print / DTP</span><span class="a-unlocked">&#10003; Unlocked</span></div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- WHY SUPERCELL -->
+<!-- ═══════════════════════════════════════ -->
+<section class="why-section" id="whySection">
+    <div class="quest-header">
+        <div class="section-badge badge-red sr">&#128293; BOSS INTEL</div>
+        <div class="section-title sr">Why <span style="color:var(--gold)">Supercell</span></div>
+    </div>
+    <div class="why-grid">
+        <div class="why-card sr">
+            <div class="card-rarity" style="background:var(--gold-dim);color:var(--gold);">Legendary</div>
+            <h3>Player First, Always</h3>
+            <p>Supercell builds for players, not shareholders. That philosophy resonates with how I approach design: every decision should serve the person on the other end. I've done this for DHL's customers, Rituals' shoppers, and HelloFresh's subscribers.</p>
+            <div class="card-xp">+500 Motivation</div>
+            <div class="card-bg-num">01</div>
+        </div>
+        <div class="why-card sr">
+            <div class="card-rarity" style="background:rgba(168,85,247,0.15);color:var(--purple);">Epic</div>
+            <h3>Independent Teams</h3>
+            <p>Small, empowered teams making big decisions. I've led creative at agencies and in-house, building workflows where trust replaces micromanagement. That's exactly the Supercell cell model.</p>
+            <div class="card-xp">+400 Alignment</div>
+            <div class="card-bg-num">02</div>
+        </div>
+        <div class="why-card sr">
+            <div class="card-rarity" style="background:rgba(79,195,247,0.15);color:var(--blue);">Rare</div>
+            <h3>Multidisciplinary Creative</h3>
+            <p>The role spans UA, animation, visual design, and art direction. My career spans exactly those disciplines, from motion graphics to print production to AI-generated campaigns. One leader, full spectrum.</p>
+            <div class="card-xp">+450 Fit</div>
+            <div class="card-bg-num">03</div>
+        </div>
+        <div class="why-card sr">
+            <div class="card-rarity" style="background:var(--gold-dim);color:var(--gold);">Legendary</div>
+            <h3>Scaling Creative Globally</h3>
+            <p>DHL across 12+ European markets. Rituals across 40+ countries. HelloFresh at production scale. I know what it takes to maintain creative quality while scaling for international audiences, exactly what Supercell games demand.</p>
+            <div class="card-xp">+600 Experience</div>
+            <div class="card-bg-num">04</div>
+        </div>
+        <div class="why-card sr">
+            <div class="card-rarity" style="background:rgba(46,204,113,0.15);color:var(--green);">Special</div>
+            <h3>AI-Native Workflow</h3>
+            <p>Built a GLS campaign entirely with Midjourney. This page was built through human-AI collaboration. I use AI daily for concept exploration, production, and scaling. The future of creative production is already how I work.</p>
+            <div class="card-xp">+500 Innovation</div>
+            <div class="card-bg-num">05</div>
+        </div>
+        <div class="why-card sr">
+            <div class="card-rarity" style="background:rgba(255,107,157,0.15);color:var(--pink);">Mythic</div>
+            <h3>Helsinki Ready</h3>
+            <p>I'm Finnish. Helsinki is home. No relocation needed, no visa issues, no adjustment period. I know the culture, the language, and the city. I can start immediately and be fully embedded from day one.</p>
+            <div class="card-xp">+999 Advantage</div>
+            <div class="card-bg-num">06</div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- GAME CHARACTERS BANNER -->
+<!-- ═══════════════════════════════════════ -->
+<section class="chars-section">
+    <div class="chars-banner sr">
+        <div class="chars-banner-text">
+            <h2>Ready to join the <span class="gold">Clan</span></h2>
+            <p>From Clash of Clans to Brawl Stars, Supercell has built the most beloved game brands in mobile gaming. I want to help tell their stories through world-class creative.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- BOSS BATTLE CTA -->
+<!-- ═══════════════════════════════════════ -->
+<section class="cta-section" id="ctaSection">
+    <div class="cta-boss-label sr">&#128293; BOSS BATTLE &#128293;</div>
+    <div class="cta-title sr">Let's Play.</div>
+    <p class="cta-sub sr">Ready to bring 12+ years of creative leadership, AI-native production, and global brand scaling to Supercell's creative studio.</p>
+    <a href="mailto:jan.lonnqvist@windowslive.com" class="cta-btn sr">
+        &#9876; Start Battle
+    </a>
+    <div class="cta-contact sr">
+        <a href="mailto:jan.lonnqvist@windowslive.com">jan.lonnqvist@windowslive.com</a>
+        <a href="tel:+31619584748">+31 619 584 748</a>
+    </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<div class="footer">
+    <span>Jan Lönnqvist / 2026</span>
+    <span>Helsinki, FI / Amsterdam, NL</span>
+    <span>jan.lonnqvist@windowslive.com / +31 619 584 748</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// LOADER
+// ═══════════════════════════════════════
+const loaderPct = document.getElementById('loaderPct');
+let loadVal = 0;
+const loadInterval = setInterval(() => {
+    loadVal += Math.floor(Math.random() * 8) + 2;
+    if (loadVal > 100) loadVal = 100;
+    loaderPct.textContent = loadVal + '%';
+    if (loadVal >= 100) {
+        clearInterval(loadInterval);
+        setTimeout(() => document.getElementById('loader').classList.add('done'), 400);
+    }
+}, 60);
+
+// ═══════════════════════════════════════
+// STARS CANVAS
+// ═══════════════════════════════════════
+const starsCanvas = document.getElementById('starsCanvas');
+const sCtx = starsCanvas.getContext('2d');
+let sW, sH;
+const stars = [];
+
+function resizeStars() {
+    sW = starsCanvas.width = window.innerWidth;
+    sH = starsCanvas.height = window.innerHeight;
+}
+resizeStars();
+window.addEventListener('resize', resizeStars);
+
+for (let i = 0; i < 150; i++) {
+    stars.push({
+        x: Math.random() * sW,
+        y: Math.random() * sH,
+        size: Math.random() * 1.5 + 0.3,
+        alpha: Math.random() * 0.6 + 0.1,
+        pulse: Math.random() * Math.PI * 2,
+        speed: 0.003 + Math.random() * 0.008
+    });
+}
+
+function drawStars() {
+    sCtx.clearRect(0, 0, sW, sH);
+    stars.forEach(s => {
+        s.pulse += s.speed;
+        const a = s.alpha * (0.5 + 0.5 * Math.sin(s.pulse));
+        sCtx.beginPath();
+        sCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        sCtx.fillStyle = `rgba(255,215,0,${a * 0.4})`;
+        sCtx.fill();
+    });
+    requestAnimationFrame(drawStars);
+}
+drawStars();
+
+// ═══════════════════════════════════════
+// GAME CURSOR
+// ═══════════════════════════════════════
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+});
+document.addEventListener('mousedown', () => cursor.classList.add('click'));
+document.addEventListener('mouseup', () => cursor.classList.remove('click'));
+
+// ═══════════════════════════════════════
+// HUD XP BAR + COIN COUNTER + SCROLL %
+// ═══════════════════════════════════════
+const hudXpFill = document.getElementById('hudXpFill');
+const coinCount = document.getElementById('coinCount');
+const hudScroll = document.getElementById('hudScroll');
+let coins = 0;
+
+function onScroll() {
+    const sy = window.scrollY;
+    const max = document.body.scrollHeight - window.innerHeight;
+    const pct = Math.round((sy / max) * 100);
+
+    hudXpFill.style.width = pct + '%';
+    hudScroll.textContent = pct + '%';
+
+    // Award coins based on scroll
+    const newCoins = Math.floor(pct * 1.5);
+    if (newCoins > coins) {
+        coins = newCoins;
+        coinCount.textContent = coins;
+    }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+
+// ═══════════════════════════════════════
+// STAT COUNTERS
+// ═══════════════════════════════════════
+let countersDone = false;
+const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting && !countersDone) {
+            countersDone = true;
+            document.querySelectorAll('.stat-val').forEach(el => {
+                const target = parseInt(el.dataset.count);
+                const duration = 1200;
+                const start = performance.now();
+                function tick(now) {
+                    const t = Math.min((now - start) / duration, 1);
+                    const eased = 1 - Math.pow(1 - t, 3);
+                    el.textContent = Math.round(eased * target) + '+';
+                    if (t < 1) requestAnimationFrame(tick);
+                }
+                requestAnimationFrame(tick);
+            });
+            counterObserver.disconnect();
+        }
+    });
+}, { threshold: 0.3 });
+document.querySelectorAll('.stats-grid').forEach(el => counterObserver.observe(el));
+
+// ═══════════════════════════════════════
+// FLOATING GAME PARTICLES
+// ═══════════════════════════════════════
+const colors = ['#ffd700', '#4fc3f7', '#a855f7', '#2ecc71', '#ff6b9d'];
+function spawnParticle() {
+    const el = document.createElement('div');
+    el.className = 'float-particle';
+    const size = 3 + Math.random() * 5;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.background = color;
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.animationDuration = (8 + Math.random() * 12) + 's';
+    el.style.opacity = 0.15 + Math.random() * 0.2;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 20000);
+}
+setInterval(spawnParticle, 1500);
+
+// ═══════════════════════════════════════
+// SCROLL REVEAL
+// ═══════════════════════════════════════
+const srObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+            setTimeout(() => entry.target.classList.add('vis'), i * 80);
+            srObserver.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('.sr').forEach(el => srObserver.observe(el));
+
+// ═══════════════════════════════════════
+// PROTECTION
+// ═══════════════════════════════════════
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+    if (e.key === 'F12') e.preventDefault();
+    if (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) e.preventDefault();
+    if (e.ctrlKey && e.key === 'u') e.preventDefault();
+});
+</script>
+
+</body>
+</html>
